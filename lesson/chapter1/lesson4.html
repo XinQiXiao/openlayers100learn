@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lesson 4</title>
+  <link rel="stylesheet" href="../../sources/openlayers/v5.3.0/css/ol.css" />
+  <script src="../../sources/openlayers/v5.3.0/build/ol.js"></script>
+</head>
+<body>
+  <div id="map" class="map"></div>
+  <script>
+    const map = new ol.Map({
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        })
+      ],
+      target: 'map',
+      view: new ol.View({
+        projection: 'EPSG:3857',
+        center: [0, 0],
+        zoom: 2,
+      })
+    })
+  </script>
+</body>
+</html>
