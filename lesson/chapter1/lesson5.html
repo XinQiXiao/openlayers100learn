@@ -3,17 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>lesson 4</title>
+  <title>lesson 5</title>
   <link rel="stylesheet" href="../../sources/openlayers/v5.3.0/css/ol.css" />
   <script src="../../sources/openlayers/v5.3.0/build/ol.js"></script>
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+  <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+  <link 
+    rel="stylesheet" 
+    href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" 
+    integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" 
+    crossorigin="anonymous"
+  >
+  <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+  <link 
+    rel="stylesheet" 
+    href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap-theme.min.css" 
+    integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" 
+    crossorigin="anonymous"
+  >
+  <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+  <script 
+    src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" 
+    integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" 
+    crossorigin="anonymous"
+  ></script>
+  <style>
+    #marker {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #088;
+      border-radius: 10px;
+      background-color: #0FF;
+      opacity: 0.5;
+    }
+    #vienna {
+      text-decoration: none;
+      color: white;
+      font-size: 11pt;
+      font-weight: bold;
+      text-shadow: black 0.1em 0.1em 0.2em;
+    }
+    .popover-content {
+      min-width: 180px;
+    }
+  </style>
 </head>
 <body>
   <div id="map" class="map"></div>
+  <div >
+    <!-- 关于维也纳信息的点击标签 -->
+    <a class="overlay" id="vienna" target="_blank" href="http://en.wikipedia.org/wiki/Vienna">Vienna</a>
+    <div id="marker" title="Marker"></div>
+    <!-- 弹窗 -->
+    <div id="popup" title="Welcome to OpenLayers"></div>
+  </div>
   <script>
     const map = new ol.Map({
       layers: [
         new ol.layer.Tile({
-          source: new ol.source.OSM()
+          source: new ol.source.XYZ({
+            tileUrlFunction(tileCoord) {
+              const z = tileCoord[0] - 1
+              const x = tileCoord[1]
+              const y = 2 ** z - tileCoord[2] - 1
+              // return `${Url + z}/${x}/${y}.PNG`
+              return `${'http://127.0.0.1:9800/tiles/' + z}/${x}/${y}.png`
+            },
+            projection: 'EPSG:4326',
+            crossOrigin: 'anonymous', // 是否请求跨域操作
+          })
         })
       ],
       target: 'map',
@@ -23,6 +81,55 @@
         zoom: 2,
       })
     })
+    var pos = ol.proj.fromLonLat([16.3725, 48.208889]);
+ 
+    // 用于充当维也纳标记的叠置层
+    var marker = new ol.Overlay({
+      element: document.getElementById('marker'),
+      position: pos,
+      positioning: 'center-center',
+      // 是否要阻止事件冒泡到地图视口(map viewport)。
+      // 如果设置为ture，那么叠置层被放在装载控件的那个div容器中（该div容器css类名为ol-overlaycontainer-stopevent）
+      // 如果设置为false，那么叠置层被放在css类名为ol-overlaycontainer的div容器下，由className属性（默认为'ol-overlay-container ol-selectable'）指定类名的div容器中
+      stopEvent: false
+    });
+    map.addOverlay(marker);     // 将叠置层添加到地图
+
+    // 用于充当维也纳标签的叠置层
+    var vienna = new ol.Overlay({
+      element: document.getElementById('vienna'),
+      position: pos
+    });
+    map.addOverlay(vienna);
+
+    // 用户点击地图就会弹出来的弹窗
+    var popup = new ol.Overlay({
+      element: document.getElementById('popup'),
+      autoPan: true,
+      autoPanMargin: 100,
+      positioning: 'top-right'
+    });
+    map.addOverlay(popup);
+
+    // 为地图绑定click事件，使用户点击地图就能在对应处弹窗
+    map.on('click', function(evt){
+      debugger
+      var element = popup.getElement();   // 获取充当弹窗的DOM元素
+      var coordinate = evt.coordinate;    // 获取鼠标点击处的坐标
+      // 将地理坐标格式化为半球、度、分和秒的形式
+      var hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
+
+      $(element).popover('destroy');
+      popup.setPosition(coordinate);  // 将弹窗位置设置为鼠标点击处
+
+      $(element).popover({
+        placement: 'top',
+        animation: false,
+        html: true,
+        content: '<p>The location you clicked was:</p><code>' + hdms + '</code>'
+      });
+      $(element).popover('show');
+    });
   </script>
 </body>
 </html>
