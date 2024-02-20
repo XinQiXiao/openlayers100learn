@@ -67,7 +67,7 @@
               const x = tileCoord[1]
               const y = 2 ** z - tileCoord[2] - 1
               // return `${Url + z}/${x}/${y}.PNG`
-              return `${'http://127.0.0.1:9800/tiles/' + z}/${x}/${y}.png`
+              return `${'http://127.0.0.1:9800/map/tiles/' + z}/${x}/${y}.PNG`
             },
             projection: 'EPSG:4326',
             crossOrigin: 'anonymous', // 是否请求跨域操作
